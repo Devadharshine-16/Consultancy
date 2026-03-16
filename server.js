@@ -1,22 +1,20 @@
 const express = require('express');
-const path = require('path');
 const app = express();
 
 // Middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(express.static('public'));
 
 // Login attempt tracking storage
 const loginAttempts = {};
-const BLOCK_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
+const BLOCK_DURATION = 5 * 60 * 1000;
 const MAX_ATTEMPTS = 3;
 
-// Helper functions for login attempt management
+// Helper functions
 function isUserBlocked(username) {
     const userAttempts = loginAttempts[username];
     if (!userAttempts) return false;
-    
+
     const now = Date.now();
     return userAttempts.blockUntil && userAttempts.blockUntil > now;
 }
@@ -24,29 +22,25 @@ function isUserBlocked(username) {
 function getRemainingBlockTime(username) {
     const userAttempts = loginAttempts[username];
     if (!userAttempts || !userAttempts.blockUntil) return 0;
-    
+
     const now = Date.now();
     const remaining = userAttempts.blockUntil - now;
-    return remaining > 0 ? Math.ceil(remaining / 1000) : 0; // Return seconds
+    return remaining > 0 ? Math.ceil(remaining / 1000) : 0;
 }
 
 function recordFailedAttempt(username) {
     if (!loginAttempts[username]) {
-        loginAttempts[username] = {
-            attempts: 0,
-            blockUntil: null
-        };
+        loginAttempts[username] = { attempts: 0, blockUntil: null };
     }
-    
+
     loginAttempts[username].attempts++;
-    
-    // Block user if max attempts reached
+
     if (loginAttempts[username].attempts >= MAX_ATTEMPTS) {
         loginAttempts[username].blockUntil = Date.now() + BLOCK_DURATION;
-        return true; // User is now blocked
+        return true;
     }
-    
-    return false; // User not blocked yet
+
+    return false;
 }
 
 function resetLoginAttempts(username) {
@@ -56,69 +50,70 @@ function resetLoginAttempts(username) {
     }
 }
 
-// Simple user database (in production, use a proper database)
+// Simple user database
 const users = {
-    'admin': 'password123',
-    'user': 'testpass',
-    'demo': 'demo123'
+    admin: "password123",
+    user: "testpass",
+    demo: "demo123"
 };
 
-// Routes
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'login.html'));
+// Root route (important for Render)
+app.get("/", (req, res) => {
+    res.send("Consultancy Backend API Running 🚀");
 });
 
-app.post('/login', (req, res) => {
+// Login API
+app.post("/login", (req, res) => {
     const { username, password } = req.body;
-    
-    // Check if user is currently blocked
+
     if (isUserBlocked(username)) {
         const remainingTime = getRemainingBlockTime(username);
         return res.status(429).json({
             success: false,
-            message: 'Too many failed attempts. Please try again later',
-            remainingTime: remainingTime
+            message: "Too many failed attempts. Please try again later",
+            remainingTime
         });
     }
-    
-    // Check credentials
+
     if (users[username] && users[username] === password) {
-        // Successful login - reset attempts
         resetLoginAttempts(username);
         return res.json({
             success: true,
-            message: 'Login successful!'
+            message: "Login successful!"
         });
     } else {
-        // Failed login - record attempt
         const isBlocked = recordFailedAttempt(username);
         const attemptsLeft = MAX_ATTEMPTS - loginAttempts[username].attempts;
-        
+
         if (isBlocked) {
             return res.status(429).json({
                 success: false,
-                message: 'Too many failed attempts. Please try again later',
+                message: "Too many failed attempts. Please try again later",
                 blocked: true
             });
         } else {
             return res.status(401).json({
                 success: false,
                 message: `Invalid credentials. ${attemptsLeft} attempts remaining`,
-                attemptsLeft: attemptsLeft
+                attemptsLeft
             });
         }
     }
 });
 
-// Route to check login status (for testing)
-app.get('/status', (req, res) => {
+// Status route
+app.get("/status", (req, res) => {
     res.json({
-        message: 'Login attempt restriction server is running',
-        blockedUsers: Object.keys(loginAttempts).filter(username => isUserBlocked(username))
+        message: "Login attempt restriction server is running",
+        blockedUsers: Object.keys(loginAttempts).filter(username =>
+            isUserBlocked(username)
+        )
     });
 });
 
-const PORT = process.env.PORT || 3000;
+// Render port
+const PORT = process.env.PORT || 5000;
+
 app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });
