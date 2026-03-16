@@ -15,7 +15,7 @@ function Properties() {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
 
-  const fetchProperties = async () => {
+  const loadProperties = async () => {
     setLoading(true);
     setError(null);
     try {
@@ -32,7 +32,7 @@ function Properties() {
   };
 
   useEffect(() => {
-    fetchProperties();
+    loadProperties();
   }, []);
 
   const filteredProperties = properties.filter((p) => {
@@ -91,7 +91,7 @@ function Properties() {
       ) : error ? (
         <div className="properties-error">
           <p>{error}</p>
-          <button onClick={fetchProperties} className="btn-retry">Retry</button>
+          <button onClick={loadProperties} className="btn-retry">Retry</button>
         </div>
       ) : filteredProperties.length === 0 ? (
         <div className="no-properties">

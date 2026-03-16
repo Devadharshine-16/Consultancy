@@ -44,7 +44,7 @@ function OwnerDashboard() {
   const mapFrameRef = useRef(null);
 
   // Fetch owner's bookings (optimized with useCallback)
-  const fetchBookings = useCallback(async () => {
+  const loadBookings = useCallback(async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
@@ -106,9 +106,9 @@ function OwnerDashboard() {
   const { pendingCount, approvedCount, rejectedCount } = bookingCounts;
 
   useEffect(() => {
-    if (activeTab === "bookings") fetchBookings();
+    if (activeTab === "bookings") loadBookings();
     if (activeTab === "myproperties") fetchMyProperties();
-  }, [activeTab, fetchBookings, fetchMyProperties]);
+  }, [activeTab, loadBookings, fetchMyProperties]);
 
   // Handle approve/reject
   const handleApprove = async (bookingId) => {
@@ -118,7 +118,7 @@ function OwnerDashboard() {
       await approveBooking(bookingId, token);
       alert("Booking approved successfully! ✅");
       setSelectedBooking(null);
-      fetchBookings();
+      loadBookings();
     } catch (error) {
       console.error("Error approving booking:", error);
       alert("Failed to approve booking");
@@ -134,7 +134,7 @@ function OwnerDashboard() {
       await rejectBooking(bookingId, token);
       alert("Booking rejected successfully");
       setSelectedBooking(null);
-      fetchBookings();
+      loadBookings();
     } catch (error) {
       console.error("Error rejecting booking:", error);
       alert("Failed to reject booking");
