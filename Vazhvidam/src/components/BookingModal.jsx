@@ -63,7 +63,6 @@ function BookingModal({ property, onClose, onSuccess }) {
 
       await createBooking(bookingData, token);
       onSuccess();
-      }
     } catch (err) {
       console.error("Booking error:", err);
       const errorMessage = 
