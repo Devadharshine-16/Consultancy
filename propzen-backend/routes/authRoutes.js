@@ -9,64 +9,66 @@ const MAX_LOGIN_ATTEMPTS = 3; // lock after 3 failed attempts
 const LOCK_TIME_MS = 5 * 60 * 1000; // 5 minutes
 
 /* REGISTER */
-router.post("/register", upload.single("identityProof"), async (req, res) => {
-  try {
-    // If body is completely missing, it's a malformed request
-    if (!req.body || typeof req.body !== "object") {
-      return res.status(400).json({ message: "Invalid form data" });
-    }
-
-    const body = req.body;
-    const name = body.name;
-    const email = body.email;
-    const password = body.password;
-    const role = body.role;
-    const identityProofType = body.identityProofType;
-
-    // Basic field validation
-    if (!name || !email || !password || !identityProofType) {
-      return res.status(400).json({ message: "All fields required" });
-    }
-
-    // Only accept one of these three proof types
-    const validProofTypes = ["aadhaar", "ration", "license"];
-    if (!validProofTypes.includes(identityProofType)) {
-      return res
-        .status(400)
-        .json({ message: "Invalid identity proof type" });
-    }
-
-    // Role validation (user / owner only for this app)
-    const validRoles = ["user", "owner"];
-    const finalRole = validRoles.includes(role) ? role : "user";
-
-    // Identity proof must be uploaded
-    if (!req.file) {
-      return res
-        .status(400)
-        .json({ message: "Identity proof upload is required" });
-    }
-
-    const exists = await User.findOne({ email });
-    if (exists) {
-      return res.status(409).json({ message: "Email already registered" });
-    }
-
-    await User.create({
-      name,
-      email,
-      password, // NOTE: for production, hash the password
-      role: finalRole,
-      identityProofType,
-      identityProofFile: req.file.path,
-      isVerified: false
+// first middleware handles file upload; errors forwarded via next
+router.post(
+  "/register",
+  (req, res, next) => {
+    upload.single("identityProof")(req, res, (err) => {
+      if (err) {
+        console.error("Multer error during registration:", err);
+        return next(err);
+      }
+      next();
     });
+  },
+  async (req, res, next) => {
+    try {
+      if (!req.body || typeof req.body !== "object") {
+        return res.status(400).json({ message: "Invalid form data" });
+      }
 
-    res.json({ message: "User registered successfully" });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+      const { name, email, password, role, identityProofType } = req.body;
+
+      if (!name || !email || !password || !identityProofType) {
+        return res.status(400).json({ message: "All fields required" });
+      }
+
+      const validProofTypes = ["aadhaar", "ration", "license"];
+      if (!validProofTypes.includes(identityProofType)) {
+        return res.status(400).json({ message: "Invalid identity proof type" });
+      }
+
+      const validRoles = ["user", "owner"];
+      const finalRole = validRoles.includes(role) ? role : "user";
+
+      if (!req.file) {
+        return res
+          .status(400)
+          .json({ message: "Identity proof upload is required" });
+      }
+
+      const exists = await User.findOne({ email });
+      if (exists) {
+        return res.status(409).json({ message: "Email already registered" });
+      }
+
+      await User.create({
+        name,
+        email,
+        password,
+        role: finalRole,
+        identityProofType,
+        identityProofFile: req.file.path,
+        isVerified: false
+      });
+
+      res.json({ message: "User registered successfully" });
+    } catch (err) {
+      console.error("Error during registration:", err);
+      next(err);
+    }
   }
-});
+);
 
 /* LOGIN */
 router.post("/login", async (req, res) => {

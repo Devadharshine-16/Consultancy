@@ -22,7 +22,6 @@ function parseChatbotQuery(userInput) {
     "coimbatore", "chennai", "bangalore", "mumbai", "delhi", "pune", 
     "hyderabad", "kolkata", "ahmedabad", "jaipur", "lucknow", "kanpur",
     "nagpur", "indore", "thane", "bhopal", "visakhapatnam", "patna",
-    "vadodara", "ghaziabad", "ludhiana", "agra", "nashik", "faridabad"
   ];
 
   // Extract location
@@ -267,9 +266,6 @@ router.post("/query", async (req, res) => {
 
     // Parse the query
     const { query, filters } = parseChatbotQuery(message);
-    
-    console.log("Parsed query:", JSON.stringify(query, null, 2));
-    console.log("Parsed filters:", JSON.stringify(filters, null, 2));
 
     // If no filters found, provide helpful response
     if (Object.keys(query).length === 0) {
@@ -286,13 +282,10 @@ router.post("/query", async (req, res) => {
     }
 
     // Execute query
-    console.log("Executing MongoDB query:", JSON.stringify(query, null, 2));
     const properties = await Property.find(query)
       .populate("owner", "name email")
       .sort({ createdAt: -1 })
       .limit(10);
-    
-    console.log(`Found ${properties.length} properties`);
 
     // Format response
     const response = formatPropertyResponse(properties, filters);

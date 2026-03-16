@@ -1,5 +1,4 @@
 const router = require("express").Router();
-const mongoose = require("mongoose");
 const Booking = require("../models/Booking");
 const Property = require("../models/Property");
 const auth = require("../middleware/authMiddleware");
@@ -38,16 +37,8 @@ router.post("/add", auth, async (req, res) => {
       status: "pending"
     });
     
-    console.log("Creating booking with owner:", propertyData.owner, "for property:", propertyData.title);
-    
     const savedBooking = await booking.save();
     const populatedBooking = await savedBooking.populate("property user owner");
-    
-    console.log("Booking created successfully:", {
-      bookingId: savedBooking._id,
-      owner: savedBooking.owner,
-      property: populatedBooking.property?.title
-    });
     
     res.status(201).json({ 
       message: "Booking created successfully", 
@@ -86,69 +77,27 @@ router.get("/user", auth, async (req, res) => {
   }
 });
 
-// Get owner's bookings (owner dashboard)
+// Get owner's bookings (owner dashboard) - optimized
 router.get("/owner/requests", auth, async (req, res) => {
   try {
     if (!req.user || !req.user.id) {
       return res.status(401).json({ message: "User not authenticated" });
     }
 
-    const ownerId = req.user.id;
-    console.log("=== FETCHING OWNER BOOKINGS ===");
-    console.log("Owner ID from token:", ownerId);
-    console.log("Owner ID type:", typeof ownerId);
-
-    // Convert to ObjectId if it's a valid ObjectId string
-    let queryOwnerId;
-    if (mongoose.Types.ObjectId.isValid(ownerId)) {
-      queryOwnerId = new mongoose.Types.ObjectId(ownerId);
-      console.log("Converted to ObjectId:", queryOwnerId.toString());
-    } else {
-      queryOwnerId = ownerId;
-      console.log("Using ownerId as-is (not a valid ObjectId)");
-    }
-
-    // First, check all bookings to see what we have
-    const allBookings = await Booking.find().limit(10);
-    console.log(`\nTotal bookings in database: ${allBookings.length}`);
-    
-    if (allBookings.length > 0) {
-      console.log("\n--- Sample bookings in database ---");
-      allBookings.forEach((booking, index) => {
-        console.log(`Booking ${index + 1}:`, {
-          id: booking._id,
-          owner: booking.owner,
-          ownerString: booking.owner?.toString(),
-          ownerType: booking.owner?.constructor?.name
-        });
-      });
-    }
-
-    // Query bookings for this owner
-    const ownerBookings = await Booking.find({ owner: queryOwnerId })
-      .populate("property user owner")
-      .sort({ createdAt: -1 });
-
-    console.log(`\nFound ${ownerBookings.length} bookings for owner ${ownerId}`);
-    
-    if (ownerBookings.length > 0) {
-      console.log("\n--- Owner's bookings ---");
-      ownerBookings.forEach((booking, index) => {
-        console.log(`Booking ${index + 1}:`, {
-          id: booking._id,
-          property: booking.property?.title,
-          user: booking.user?.name,
-          status: booking.status
-        });
-      });
-    } else {
-      console.log("\n⚠️ No bookings found for this owner!");
-      console.log("Possible reasons:");
-      console.log("1. No bookings exist yet");
-      console.log("2. Owner ID mismatch");
-      console.log("3. Bookings exist but owner field doesn't match");
-    }
-    console.log("=== END FETCHING OWNER BOOKINGS ===\n");
+    // Get all bookings where this user is the owner (optimized with lean and field selection)
+    const ownerBookings = await Booking.find({ owner: req.user.id })
+      .populate({
+        path: "property",
+        select: "title price location images" // Only select necessary fields
+      })
+      .populate({
+        path: "user", 
+        select: "name email" // Only select necessary fields
+      })
+      .select("user property visitDate message status createdAt") // Only select necessary fields
+      .lean() // Return plain JavaScript objects for better performance
+      .sort({ createdAt: -1 })
+      .limit(50); // Limit to prevent performance issues
 
     res.json(ownerBookings);
   } catch (err) {
