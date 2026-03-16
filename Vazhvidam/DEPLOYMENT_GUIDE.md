@@ -3,7 +3,7 @@
 ## 🚀 Ready for Deployment
 
 Your frontend is now configured to work with your backend at:
-**Backend URL**: `https://consultancy-1-ulep.onrender.com`
+**Backend URL**: `https://consultancy-ol25.onrender.com`
 
 ## 📋 Deployment Steps
 
@@ -40,7 +40,7 @@ Render will automatically use production settings. No additional configuration n
 ## ✅ What's Configured
 
 ### API Configuration
-- ✅ **Production Backend**: All API calls now point to `https://consultancy-1-ulep.onrender.com`
+- ✅ **Production Backend**: All API calls now point to `https://consultancy-ol25.onrender.com`
 - ✅ **Environment Config**: Centralized in `src/config/api.js`
 - ✅ **Build Optimized**: Vite config optimized for production
 
@@ -66,7 +66,7 @@ After deployment, your frontend will:
 ## 🔧 Troubleshooting
 
 ### If API Calls Fail
-1. **Check Backend URL**: Verify backend is running at `https://consultancy-1-ulep.onrender.com`
+1. **Check Backend URL**: Verify backend is running at `https://consultancy-ol25.onrender.com`
 2. **CORS Issues**: Ensure backend allows frontend origin
 3. **Network Tab**: Check browser dev tools for API errors
 

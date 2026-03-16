@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || "https://consultancy-1-ulep.onrender.com";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://consultancy-ol25.onrender.com";
 
 async function requestJson(path, options = {}) {
   const res = await fetch(`${API_BASE_URL}${path}`, {
@@ -72,11 +72,19 @@ export async function register(data) {
     });
 
     const text = await res.text();
-    const json = text ? JSON.parse(text) : null;
+    let json = null;
+    if (text) {
+      try {
+        json = JSON.parse(text);
+      } catch (parseError) {
+        json = null;
+      }
+    }
     if (!res.ok) {
-      const error = new Error(json?.message || json?.error || `Register failed ${res.status}`);
+      const errorMessage = json?.message || json?.error || text || `Register failed ${res.status}`;
+      const error = new Error(errorMessage);
       error.status = res.status;
-      error.data = json;
+      error.data = json || { raw: text };
       throw error;
     }
     return json;
