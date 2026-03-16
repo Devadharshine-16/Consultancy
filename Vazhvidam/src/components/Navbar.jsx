@@ -8,10 +8,7 @@ const Navbar = () => {
   return (
     <nav className="navbar">
       <div className="logo">
-        <Link to="/" className="logo-link">
-          <img src="/logo.jpeg" alt="Vazhvidam" className="logo-image" />
-          <span className="logo-text">Vazhvidam</span>
-        </Link>
+        <Link to="/">Vazhvidam</Link>
       </div>
       
       <ul className="nav-links">
@@ -21,6 +18,7 @@ const Navbar = () => {
         {role === "owner" && (
           <>
             <li><Link to="/owner-dashboard">Owner Dashboard</Link></li>
+            <li><Link to="/add-property">Add Property</Link></li>
           </>
         )}
 

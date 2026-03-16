@@ -1,10 +1,7 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { Link, useNavigate } from "react-router-dom";
 import "../styles/login.css";
-import { API_BASE_URL } from "../config/api";
-
-const API_BASE = API_BASE_URL;
+import { login } from "../api";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -22,36 +19,21 @@ function Login() {
     const passwordVal = (form.elements?.password?.value || password).trim();
 
     try {
-      const res = await fetch(`${API_BASE}/api/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email: emailVal, password: passwordVal }),
-      });
+      const data = await login({ email: emailVal, password: passwordVal });
 
-      const data = await res.json();
+      setIsBlocked(false);
+      setIsError(false);
 
-      if (res.ok) {
-        setIsBlocked(false);
-        setIsError(false);
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("role", data.role);
 
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("role", data.role);
-
-        setMessage("Login successful");
-        if (data.role === "owner") {
-          navigate("/owner-dashboard");
-        } else if (data.role === "admin") {
-          navigate("/admin-dashboard");
-        } else {
-          navigate("/properties");
-        }
+      setMessage("Login successful");
+      if (data.role === "owner") {
+        navigate("/owner-dashboard");
+      } else if (data.role === "admin") {
+        navigate("/admin-dashboard");
       } else {
-        const msg = data.message || "Login failed";
-        setMessage(msg);
-        setIsError(true);
-        setIsBlocked(res.status === 429);
+        navigate("/properties");
       }
     } catch (error) {
       setMessage("Server error. Try again.");

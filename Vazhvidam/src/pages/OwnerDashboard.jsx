@@ -1,10 +1,15 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import axios from "axios";
 import "../styles/dashboard.css";
 import BookingRequestModal from "../components/BookingRequestModal";
-import { API_BASE_URL } from "../config/api";
-
-const API_BASE = API_BASE_URL;
+import {
+  fetchBookings,
+  fetchOwnerProperties,
+  approveBooking,
+  rejectBooking,
+  addProperty,
+  deleteProperty,
+  updateProperty,
+} from "../api";
 
 function OwnerDashboard() {
   const [activeTab, setActiveTab] = useState("bookings");
@@ -45,20 +50,12 @@ function OwnerDashboard() {
       const token = localStorage.getItem("token");
       console.log("Fetching bookings for owner...");
       
-      const response = await axios.get(
-        "http://localhost:5000/api/bookings/owner/requests",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetchBookings(token);
       
-      console.log("Bookings response:", response.data);
-      console.log("Number of bookings:", response.data?.length || 0);
+      console.log("Bookings response:", response);
+      console.log("Number of bookings:", response?.length || 0);
       
-      // Log owner details for each booking
-      response.data?.forEach((booking, index) => {
+      response?.forEach((booking, index) => {
         console.log(`Booking ${index + 1}:`);
         console.log(`  - Property: ${booking.property?.title}`);
         console.log(`  - Owner Email: ${booking.owner?.email}`);
@@ -67,7 +64,7 @@ function OwnerDashboard() {
         console.log(`  - Status: ${booking.status}`);
       });
       
-      setBookings(response.data || []);
+      setBookings(response || []);
     } catch (error) {
       console.error("Error fetching bookings:", error);
       console.error("Error response:", error.response?.data);
@@ -88,10 +85,8 @@ function OwnerDashboard() {
         setMyProperties([]);
         return;
       }
-      const res = await axios.get(`${API_BASE}/api/properties/owner/me`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setMyProperties(Array.isArray(res.data) ? res.data : []);
+      const res = await fetchOwnerProperties(token);
+      setMyProperties(Array.isArray(res) ? res : []);
     } catch (err) {
       console.error("Error fetching properties:", err);
       setMyPropertiesError(err.response?.data?.message || "Failed to load properties");
@@ -120,15 +115,7 @@ function OwnerDashboard() {
     setActionInProgress(true);
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.put(
-        `http://localhost:5000/api/bookings/approve/${bookingId}`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      await approveBooking(bookingId, token);
       alert("Booking approved successfully! ✅");
       setSelectedBooking(null);
       fetchBookings();
@@ -144,15 +131,7 @@ function OwnerDashboard() {
     setActionInProgress(true);
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.put(
-        `http://localhost:5000/api/bookings/reject/${bookingId}`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      await rejectBooking(bookingId, token);
       alert("Booking rejected successfully");
       setSelectedBooking(null);
       fetchBookings();
@@ -283,17 +262,7 @@ function OwnerDashboard() {
         images: imageBase64Array
       };
 
-      await axios.post(
-        "http://localhost:5000/api/properties/add",
-        propertyData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json"
-          }
-        }
-      );
-
+      await addProperty(propertyData, token);
       alert("Property added successfully ✅");
 
       // Reset form
@@ -331,9 +300,7 @@ function OwnerDashboard() {
     if (!token) return;
 
     try {
-      await axios.delete(`${API_BASE}/api/properties/${propertyId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await deleteProperty(propertyId, token);
       alert("Property deleted successfully");
       setEditingProperty(null);
       fetchMyProperties();
@@ -371,9 +338,7 @@ function OwnerDashboard() {
     if (!token) return;
 
     try {
-      await axios.put(`${API_BASE}/api/properties/${editingProperty._id}`, editForm, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await updateProperty(editingProperty._id, editForm, token);
       alert("Property updated successfully!");
       setEditingProperty(null);
       fetchMyProperties();

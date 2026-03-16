@@ -1,13 +1,10 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "../styles/properties.css";
 import PropertyDetails from "../components/PropertyDetails";
 import BookingModal from "../components/BookingModal";
 import Chatbot from "../components/Chatbot";
-import { API_BASE_URL } from "../config/api";
-
-const API_BASE = API_BASE_URL;
+import { fetchProperties } from "../api";
 
 function Properties() {
   const [properties, setProperties] = useState([]);
@@ -16,21 +13,18 @@ function Properties() {
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [createdBooking, setCreatedBooking] = useState(null);
   const navigate = useNavigate();
 
   const fetchProperties = async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await axios.get(`${API_BASE}/api/properties`);
-      const data = res.data;
-      // Handle both array response and wrapped { data: [...] } format
+      const data = await fetchProperties();
       const list = Array.isArray(data) ? data : (data?.properties ?? data?.data ?? []);
       setProperties(list);
     } catch (err) {
       console.error("Error fetching properties:", err);
-      setError(err.response?.data?.message || err.message || "Failed to load properties");
+      setError(err.data?.message || err.message || "Failed to load properties");
       setProperties([]);
     } finally {
       setLoading(false);

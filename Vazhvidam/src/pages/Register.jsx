@@ -1,11 +1,7 @@
 import { useState } from "react";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { Link, useNavigate } from "react-router-dom";
 import "../styles/register.css";
-import { API_BASE_URL } from "../config/api";
-
-const API_BASE = API_BASE_URL;
+import { register } from "../api";
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -44,11 +40,7 @@ function Register() {
       data.append("identityProofType", formData.identityProofType);
       data.append("identityProof", identityFile);
 
-      await axios.post(`${API_BASE}/api/auth/register`, data, {
-        headers: {
-          "Content-Type": "multipart/form-data"
-        }
-      });
+      await register(data);
 
       setMessage("Registration successful! Redirecting to login...");
       setIsError(false);

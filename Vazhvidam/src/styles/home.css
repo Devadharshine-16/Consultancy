@@ -103,7 +103,7 @@
 /* Features Section */
 .home-features {
   padding: 80px 80px;
-  background: transparent;
+  background: #ffffff;
   position: relative;
 }
 
@@ -116,18 +116,17 @@
 }
 
 .home-feature-card {
-  background: rgba(255, 255, 255, 0.85);
+  background: #ffffff;
   padding: 40px 32px;
   border-radius: 12px;
   text-align: center;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(240, 240, 240, 0.3);
+  border: 1px solid #f0f0f0;
   transition: all 0.3s ease;
   height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  backdrop-filter: blur(2px);
 }
 
 .home-feature-card:hover {

@@ -1,9 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import axios from "axios";
 import "../styles/chatbot.css";
-import { API_BASE_URL } from "../config/api";
-
-const API_BASE = API_BASE_URL;
+import { queryChatbot } from "../api";
 
 function Chatbot({ onPropertySelect }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -53,17 +50,13 @@ function Chatbot({ onPropertySelect }) {
     setIsLoading(true);
 
     try {
-      const response = await axios.post(`${API_BASE}/api/chatbot/query`, {
-        message: userMessage
-      });
-
-      // Add bot response
+      const response = await queryChatbot(userMessage);
       setMessages((prev) => [
         ...prev,
         {
           type: "bot",
-          text: response.data.response,
-          properties: response.data.properties || []
+          text: response.response,
+          properties: response.properties || []
         }
       ]);
     } catch (error) {
@@ -97,17 +90,13 @@ function Chatbot({ onPropertySelect }) {
     setIsLoading(true);
 
     try {
-      const response = await axios.post(`${API_BASE}/api/chatbot/query`, {
-        message: query
-      });
-
-      // Add bot response
+      const response = await queryChatbot(query);
       setMessages((prev) => [
         ...prev,
         {
           type: "bot",
-          text: response.data.response,
-          properties: response.data.properties || []
+          text: response.response,
+          properties: response.properties || []
         }
       ]);
     } catch (error) {
@@ -232,7 +221,6 @@ function Chatbot({ onPropertySelect }) {
                           onClick={() => {
                             if (onPropertySelect) {
                               onPropertySelect(property);
-                              setIsOpen(false); // Close chatbot after property selection
                             }
                           }}
                         >

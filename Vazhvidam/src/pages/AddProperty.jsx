@@ -1,6 +1,6 @@
 import { useState } from "react";
-import axios from "axios";
 import "../styles/addProperty.css";
+import { addProperty } from "../api";
 
 function AddProperty() {
   const [formData, setFormData] = useState({
@@ -132,17 +132,7 @@ function AddProperty() {
         images: imageUrls
       };
 
-      const response = await axios.post(
-        "http://localhost:5000/api/properties/add",
-        propertyData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json"
-          }
-        }
-      );
-
+      await addProperty(propertyData, token);
       setSuccess(true);
       setFormData({
         title: "",

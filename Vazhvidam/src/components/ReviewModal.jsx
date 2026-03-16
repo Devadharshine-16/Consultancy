@@ -1,6 +1,6 @@
 import { useState } from "react";
-import axios from "axios";
 import "../styles/reviewModal.css";
+import { submitReview } from "../api";
 
 function ReviewModal({ booking, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
@@ -38,18 +38,8 @@ function ReviewModal({ booking, onClose, onSuccess }) {
         comment: formData.comment.trim()
       };
 
-      const response = await axios.post(
-        "http://localhost:5000/api/reviews/add",
-        reviewData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.data) {
-        onSuccess();
+      await submitReview(reviewData, token);
+      onSuccess();
       }
     } catch (err) {
       console.error("Review error:", err);
