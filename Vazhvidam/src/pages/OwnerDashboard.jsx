@@ -2,8 +2,9 @@ import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import axios from "axios";
 import "../styles/dashboard.css";
 import BookingRequestModal from "../components/BookingRequestModal";
+import { API_BASE_URL } from "../config/api";
 
-const API_BASE = "http://localhost:5000";
+const API_BASE = API_BASE_URL;
 
 function OwnerDashboard() {
   const [activeTab, setActiveTab] = useState("bookings");

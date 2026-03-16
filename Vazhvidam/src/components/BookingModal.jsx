@@ -1,6 +1,9 @@
 import { useState } from "react";
 import axios from "axios";
 import "../styles/bookingModal.css";
+import { API_BASE_URL } from "../config/api";
+
+const API_BASE = API_BASE_URL;
 
 function BookingModal({ property, onClose, onSuccess }) {
   // Guard if property is missing
@@ -62,8 +65,7 @@ function BookingModal({ property, onClose, onSuccess }) {
         message: formData.message,
       };
 
-      const response = await axios.post(
-        "http://localhost:5000/api/bookings/add",
+      const response = await axios.post(`${API_BASE}/api/bookings/add`,
         bookingData,
         {
           headers: {

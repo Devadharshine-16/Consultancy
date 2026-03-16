@@ -1,6 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import "../styles/chatbot.css";
+import { API_BASE_URL } from "../config/api";
+
+const API_BASE = API_BASE_URL;
 
 function Chatbot({ onPropertySelect }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -50,7 +53,7 @@ function Chatbot({ onPropertySelect }) {
     setIsLoading(true);
 
     try {
-      const response = await axios.post("http://localhost:5000/api/chatbot/query", {
+      const response = await axios.post(`${API_BASE}/api/chatbot/query`, {
         message: userMessage
       });
 
@@ -94,7 +97,7 @@ function Chatbot({ onPropertySelect }) {
     setIsLoading(true);
 
     try {
-      const response = await axios.post("http://localhost:5000/api/chatbot/query", {
+      const response = await axios.post(`${API_BASE}/api/chatbot/query`, {
         message: query
       });
 

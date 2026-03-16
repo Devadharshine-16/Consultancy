@@ -1,6 +1,10 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import "../styles/login.css";
+import { API_BASE_URL } from "../config/api";
+
+const API_BASE = API_BASE_URL;
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -18,7 +22,7 @@ function Login() {
     const passwordVal = (form.elements?.password?.value || password).trim();
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/login", {
+      const res = await fetch(`${API_BASE}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

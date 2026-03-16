@@ -5,8 +5,9 @@ import "../styles/properties.css";
 import PropertyDetails from "../components/PropertyDetails";
 import BookingModal from "../components/BookingModal";
 import Chatbot from "../components/Chatbot";
+import { API_BASE_URL } from "../config/api";
 
-const API_BASE = "http://localhost:5000";
+const API_BASE = API_BASE_URL;
 
 function Properties() {
   const [properties, setProperties] = useState([]);
