@@ -41,11 +41,24 @@ router.post("/add", auth, role(["owner", "admin"]), async (req, res) => {
       return res.status(400).json({ message: "Description is required" });
     }
 
-    // Support simplified format (Owner Dashboard): title, location, price, description, images
-    const isSimplified = location && !city;
-    const finalCity = (city || location || "").trim() || "Not specified";
-    const finalArea = (area || "").trim() || "Not specified";
-    const finalAddress = (address || location || "").trim() || "Not specified";
+    // Normalize location input: support either location string or structured location object
+    let locationCity = "";
+    let locationArea = "";
+    let locationAddress = "";
+
+    if (typeof location === "string") {
+      locationCity = location.trim();
+      locationArea = location.trim();
+      locationAddress = location.trim();
+    } else if (location && typeof location === "object") {
+      locationCity = (location.city || "").trim();
+      locationArea = (location.area || "").trim();
+      locationAddress = (location.address || "").trim();
+    }
+
+    const finalCity = (city && city.trim()) || locationCity || "Not specified";
+    const finalArea = (area && area.trim()) || locationArea || "Not specified";
+    const finalAddress = (address && address.trim()) || locationAddress || "Not specified";
     const finalPropertyType = propertyType && ["House", "Apartment", "Land", "Commercial"].includes(propertyType)
       ? propertyType
       : "House";
@@ -178,14 +191,22 @@ router.put("/:id", auth, role(["owner", "admin"]), async (req, res) => {
     let update = { ...req.body };
     delete update.owner; // prevent changing owner
 
-    // Handle simplified format: location as string
-    if (update.location && typeof update.location === "string") {
-      const loc = update.location.trim();
-      update.location = {
-        city: loc || property.location?.city || "Not specified",
-        area: update.area || property.location?.area || "Not specified",
-        address: loc || property.location?.address || "Not specified"
-      };
+    // Handle simplified format: location as string or structured object
+    if (update.location) {
+      if (typeof update.location === "string") {
+        const loc = update.location.trim();
+        update.location = {
+          city: loc || property.location?.city || "Not specified",
+          area: update.area || property.location?.area || "Not specified",
+          address: loc || property.location?.address || "Not specified"
+        };
+      } else if (typeof update.location === "object") {
+        update.location = {
+          city: (update.location.city || property.location?.city || "Not specified").trim(),
+          area: (update.location.area || property.location?.area || "Not specified").trim(),
+          address: (update.location.address || property.location?.address || "Not specified").trim()
+        };
+      }
       delete update.area;
     }
 
